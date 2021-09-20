@@ -1,0 +1,70 @@
+#include <ESP8266WiFi.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
+
+//WiFi
+  const char* ssid = "SMART1";
+  const char* password = "12345678IPG";
+//ip
+  const char* host = "192.168.31.177";
+  const int oneWireBus = 12;
+
+OneWire oneWire(oneWireBus);
+DallasTemperature sensors(&oneWire);
+
+void get_s(int a)
+{
+  WiFiClient client;
+  if (client.connect(host, 80))
+  {
+    Serial.println("GET start.");
+    //api
+    client.println("GET /" + String(a));
+    //IP
+    client.println("Host: 192.168.31.177");
+    client.println("User-Agent: arduino-ethernet");
+    client.println("Connection: close");
+    client.println();
+    Serial.println("GET end.");
+    client.stop();
+    Serial.println("\n[Disconnected]\n\n");
+  }
+  else
+  {
+    Serial.println("connection failed!]\n\n");
+    client.stop();
+  }
+}
+
+void setup()
+{
+  Serial.begin(9600);
+  delay(100);
+  sensors.begin();
+  delay(100);
+  Serial.println();
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    delay(500);
+    Serial.print(".");
+  }
+    Serial.println("");
+    Serial.println("WiFi connected");  
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
+  }
+
+void loop() 
+{
+  sensors.requestTemperatures(); 
+  float temperatureC = sensors.getTempCByIndex(0);
+  Serial.print(temperatureC);
+  Serial.println("ºC");
+  get_s(temperatureC);      
+  delay(3000);
+}
